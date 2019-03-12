@@ -51,7 +51,7 @@ class DataController {
         
         if withBook {
             let book = Book(context: self.context)
-            book.title = "Lord of the Rings"
+            book.title = "A Song of Ice and Fire"
             user.addToBooks(book)
         }
         
