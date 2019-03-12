@@ -6,3 +6,4 @@ Sample usage of Core Data framework. Includes:
 - sample batch request
 - heavyweight migration Mapping Model
 - strongly typed relationship created by subclassing `NSManagedObject`
+- switching between different store types: `NSInMemoryStoreType`, `NSSQLiteStoreType`, `NSBinaryStoreType`

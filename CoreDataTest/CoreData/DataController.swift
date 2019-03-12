@@ -9,6 +9,7 @@ class DataController {
     }
     
     func initalizeStack() {
+        //self.setStore(type: NSInMemoryStoreType)
         self.persistentContainer.loadPersistentStores { description, error in
             if let error = error {
                 print("could not load store \(error.localizedDescription)")
@@ -27,6 +28,18 @@ class DataController {
                 print("failed \(error.localizedDescription)")
             }
         }
+    }
+    
+    func setStore(type: String) {
+        let description = NSPersistentStoreDescription()
+        description.type = type // types: NSInMemoryStoreType, NSSQLiteStoreType, NSBinaryStoreType
+        
+        if type == NSSQLiteStoreType || type == NSBinaryStoreType {
+            description.url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+                .first?.appendingPathComponent("database")
+        }
+        
+        self.persistentContainer.persistentStoreDescriptions = [description]
     }
     
     func fetchUsers() throws -> [User] {
