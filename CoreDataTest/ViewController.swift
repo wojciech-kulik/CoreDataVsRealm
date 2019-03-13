@@ -5,18 +5,26 @@ class ViewController: UIViewController {
 
     @IBOutlet weak var tableView: UITableView!
     let dataController = DataController()
-    var users: [User] = []
+    var fetchController: NSFetchedResultsController<User>?
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         self.tableView.tableFooterView = UIView()
         self.tableView.dataSource = self
         self.tableView.delegate = self
         
-        self.dataController.initalizeStack { [weak self] in
-            guard let strongSelf = self else { return }
-            strongSelf.users = (try? strongSelf.dataController.fetchUsers()) ?? []
-            strongSelf.tableView.reloadData()
+        self.dataController.initalizeStack {
+            let request = User.fetchRequest() as NSFetchRequest<User>
+            request.sortDescriptors = [NSSortDescriptor(key: "firstName", ascending: true)]
+            
+            let fetchController = NSFetchedResultsController(fetchRequest: request,
+                                                             managedObjectContext: self.dataController.context,
+                                                             sectionNameKeyPath: nil, cacheName: nil)
+
+            fetchController.delegate = self
+            self.fetchController = fetchController
+            try? fetchController.performFetch()
         }
     }
     
@@ -32,8 +40,6 @@ class ViewController: UIViewController {
             user.bonusPoints = "10"
             
             try? self.dataController.insert(user: user, withBook: true)
-            self.users = (try? self.dataController.fetchUsers()) ?? []
-            self.tableView.reloadData()
         })
         
         alertController.addTextField { textField in
@@ -50,15 +56,29 @@ class ViewController: UIViewController {
     }
 }
 
+extension ViewController: NSFetchedResultsControllerDelegate {
+    
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
+                    didChange anObject: Any, at indexPath: IndexPath?,
+                    for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        switch type {
+        case .delete: self.tableView.deleteRows(at: [indexPath!], with: .automatic)
+        case .insert: self.tableView.insertRows(at: [newIndexPath!], with: .automatic)
+        case .update: self.tableView.reloadRows(at: [indexPath!], with: .automatic)
+        case .move: self.tableView.reloadData()
+        }
+    }
+}
+
 extension ViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.users.count
+        return self.fetchController?.fetchedObjects?.count ?? 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = self.tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        let user = self.users[indexPath.row]
+        guard let user = self.fetchController?.object(at: indexPath) else { return cell }
         
         cell.selectionStyle = .none
         cell.textLabel?.text = "\(user.firstName) \(user.lastName)"
@@ -76,11 +96,8 @@ extension ViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if (editingStyle == .delete) {
-            let user = self.users[indexPath.row]
-            
+            guard let user = self.fetchController?.object(at: indexPath) else { return }
             try? self.dataController.delete(user: user)
-            self.users.remove(at: indexPath.row)
-            tableView.deleteRows(at: [indexPath], with: .fade)
         }
     }
 }
