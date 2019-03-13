@@ -8,3 +8,6 @@ Sample usage of Core Data framework, includes:
 - heavyweight migration Mapping Model
 - strongly typed relationship created by subclassing `NSManagedObject`
 - switching between different store types: `NSInMemoryStoreType`, `NSSQLiteStoreType`, `NSBinaryStoreType`
+
+You can read more about Core Data in my article:  
+https://wojciechkulik.pl/ios/getting-started-with-core-data-using-swift-4
