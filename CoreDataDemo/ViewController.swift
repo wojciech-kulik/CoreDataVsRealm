@@ -15,6 +15,7 @@ class ViewController: UIViewController {
         self.tableView.delegate = self
         
         self.dataController.initalizeStack {
+            _ = try? self.dataController.fetchUsers()
             let request = User.fetchRequest() as NSFetchRequest<User>
             request.sortDescriptors = [NSSortDescriptor(key: "firstName", ascending: true)]
             
