@@ -1,6 +1,7 @@
 # Core Data Example
 
 Sample usage of Core Data framework, includes:
+- populating `UITableView` using `NSFetchedResultsController`
 - Data Model in 2 versions
 - CRUD operations
 - batch request
