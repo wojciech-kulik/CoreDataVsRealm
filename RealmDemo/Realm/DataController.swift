@@ -3,21 +3,16 @@ import RealmSwift
 
 class DataController {
     var realm: Realm
+    static let currentVersion: UInt64 = 1
     
     init() {
         let url = FileManager.default
             .urls(for: .documentDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("database.realm")
+        print(url.absoluteString)
         
-        let currentVersion: UInt64 = 1
         Realm.Configuration.defaultConfiguration =
-            Realm.Configuration(fileURL: url, schemaVersion: currentVersion, migrationBlock: { migration, oldSchemaVersion in
-                guard currentVersion == 2 && oldSchemaVersion == 1 else { return }
-                migration.enumerateObjects(ofType: User.className()) { oldObject, newObject in
-                    let oldValue = oldObject!["bonusPoints"] as! String
-                    newObject!["bonusPoints"] = Int32(oldValue)!
-                }
-            })
+            Realm.Configuration(fileURL: url, schemaVersion: DataController.currentVersion, migrationBlock: DataController.migrate)
         
         self.realm = try! Realm()
     }
@@ -63,6 +58,15 @@ class DataController {
         try self.realm.write {
             users.forEach { $0.books.forEach(self.realm.delete) }
             self.realm.delete(users)
+        }
+    }
+    
+    static private func migrate(migration: Migration, oldSchemaVersion: UInt64) {
+        guard DataController.currentVersion == 2 && oldSchemaVersion == 1 else { return }
+        
+        migration.enumerateObjects(ofType: User.className()) { oldObject, newObject in
+            let oldValue = oldObject!["bonusPoints"] as! String
+            newObject!["bonusPoints"] = Int32(oldValue)!
         }
     }
 }
