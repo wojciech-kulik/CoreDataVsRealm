@@ -1,6 +1,6 @@
 # Core Data vs Realm
 
-Sample usage of Core Data framework, includes:
+Sample usage of Core Data, includes:
 - populating `UITableView` using `NSFetchedResultsController`
 - Data Model in 2 versions
 - CRUD operations
@@ -13,9 +13,10 @@ Sample usage of Realm, includes:
 - populating `UITableView`
 - CRUD operations
 - batch request
+- migration
 - strongly typed relationships
 
 To run Realm example, first download dependencies using Carthage: `carthage update`
 
-You can read more about Core Data in my article:  
+You can read more about Core Data and Realm in my article:  
 https://wojciechkulik.pl/ios/getting-started-with-core-data-using-swift-4
