@@ -17,9 +17,9 @@ class DataController {
         self.realm = try! Realm()
     }
     
-    func fetchUsers() throws -> [User] {
-        let users = self.realm.objects(User.self).sorted { $0.firstName.lowercased() < $1.firstName.lowercased() }
-        return Array(users)
+    func fetchUsers() throws -> Results<User> {
+        let users = self.realm.objects(User.self)
+        return users
     }
     
     func fetchUsers(withName name: String) throws -> [User] {
