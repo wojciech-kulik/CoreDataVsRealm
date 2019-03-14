@@ -1,10 +1,12 @@
 import UIKit
+import RealmSwift
 
 class ViewController: UIViewController {
     
     @IBOutlet weak var tableView: UITableView!
     let dataController = DataController()
-    var users: [User] = []
+    var users: Results<User>?
+    var token: NotificationToken?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -13,7 +15,12 @@ class ViewController: UIViewController {
         self.tableView.dataSource = self
         self.tableView.delegate = self
         
-        self.refresh()
+        self.users = try! self.dataController.fetchUsers().sorted(byKeyPath: "firstName")
+        self.token = self.users?.observe(self.observeChanges)
+    }
+    
+    deinit {
+        self.token?.invalidate()
     }
     
     @IBAction func addClicked(_ sender: Any) {
@@ -28,11 +35,6 @@ class ViewController: UIViewController {
             user.bonusPoints = "10"
             
             try? self.dataController.insert(user: user, withBook: true)
-            self.users.append(user)
-            self.users.sort(by: { $0.firstName.lowercased() < $1.firstName.lowercased() })
-            
-            let newIndex = self.users.firstIndex(of: user) ?? 0
-            self.tableView.insertRows(at: [IndexPath(row: newIndex, section: 0)], with: .automatic)
         })
         
         alertController.addTextField { textField in
@@ -48,21 +50,33 @@ class ViewController: UIViewController {
         self.navigationController?.present(alertController, animated: true, completion: nil)
     }
     
-    private func refresh() {
-        self.users = (try? self.dataController.fetchUsers()) ?? []
-        self.tableView.reloadData()
+    private func observeChanges(changes: RealmCollectionChange<Results<User>>) {
+        switch changes {
+        case .initial:
+            tableView.reloadData()
+            
+        case .update(_, let deletions, let insertions, let modifications):
+            self.tableView.beginUpdates()
+            self.tableView.insertRows(at: insertions.map({ IndexPath(row: $0, section: 0) }), with: .automatic)
+            self.tableView.deleteRows(at: deletions.map({ IndexPath(row: $0, section: 0)}), with: .automatic)
+            self.tableView.reloadRows(at: modifications.map({ IndexPath(row: $0, section: 0) }), with: .automatic)
+            self.tableView.endUpdates()
+            
+        case .error(let error):
+            fatalError("\(error)")
+        }
     }
 }
 
 extension ViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.users.count
+        return self.users?.count ?? 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = self.tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        let user = self.users[indexPath.row]
+        let user = self.users![indexPath.row]
         
         cell.selectionStyle = .none
         cell.textLabel?.text = "\(user.firstName) \(user.lastName)"
@@ -79,12 +93,8 @@ extension ViewController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if (editingStyle == .delete) {
-            let user = self.users[indexPath.row]
-            try? self.dataController.delete(user: user)
-            
-            self.users.remove(at: indexPath.row)
-            self.tableView.deleteRows(at: [indexPath], with: .automatic)
-        }
+        guard editingStyle == .delete else { return }
+        let user = self.users![indexPath.row]
+        try? self.dataController.delete(user: user)
     }
 }
