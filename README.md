@@ -10,7 +10,7 @@ Sample usage of Core Data, includes:
 - switching between different store types: `NSInMemoryStoreType`, `NSSQLiteStoreType`, `NSBinaryStoreType`
 
 Sample usage of Realm, includes:
-- populating `UITableView`
+- populating `UITableView` + tracking changes using Realm notifications
 - CRUD operations
 - batch request
 - migration
