@@ -1,6 +1,6 @@
 # Core Data vs Realm
 
-Sample usage of Core Data, includes:
+Sample usage of Core Data includes:
 - populating `UITableView` using `NSFetchedResultsController`
 - Data Model in 2 versions
 - CRUD operations
@@ -9,7 +9,7 @@ Sample usage of Core Data, includes:
 - strongly typed relationship created by subclassing `NSManagedObject`
 - switching between different store types: `NSInMemoryStoreType`, `NSSQLiteStoreType`, `NSBinaryStoreType`
 
-Sample usage of Realm, includes:
+Sample usage of Realm includes:
 - populating `UITableView`
 - tracking changes using Realm notifications
 - CRUD operations
