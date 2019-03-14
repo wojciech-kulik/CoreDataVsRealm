@@ -2,10 +2,25 @@ import Foundation
 import RealmSwift
 
 class DataController {
-    let realm = try! Realm(configuration:
-        Realm.Configuration(fileURL: FileManager.default
+    var realm: Realm
+    
+    init() {
+        let url = FileManager.default
             .urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("database"), schemaVersion: 1))
+            .appendingPathComponent("database.realm")
+        
+        let currentVersion: UInt64 = 1
+        Realm.Configuration.defaultConfiguration =
+            Realm.Configuration(fileURL: url, schemaVersion: currentVersion, migrationBlock: { migration, oldSchemaVersion in
+                guard currentVersion == 2 && oldSchemaVersion == 1 else { return }
+                migration.enumerateObjects(ofType: User.className()) { oldObject, newObject in
+                    let oldValue = oldObject!["bonusPoints"] as! String
+                    newObject!["bonusPoints"] = Int32(oldValue)!
+                }
+            })
+        
+        self.realm = try! Realm()
+    }
     
     func fetchUsers() throws -> [User] {
         let users = self.realm.objects(User.self).sorted { $0.firstName.lowercased() < $1.firstName.lowercased() }
@@ -37,6 +52,7 @@ class DataController {
     
     func delete(user: User) throws {
         try self.realm.write {
+            user.books.forEach(self.realm.delete)
             self.realm.delete(user)
         }
     }
@@ -45,6 +61,7 @@ class DataController {
         let users = try self.fetchUsers(withName: name)
         
         try self.realm.write {
+            users.forEach { $0.books.forEach(self.realm.delete) }
             self.realm.delete(users)
         }
     }
