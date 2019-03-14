@@ -1,10 +1,10 @@
 import Foundation
 import RealmSwift
 
-public class User: Object {
-    @objc dynamic public var firstName: String = ""
-    @objc dynamic public var lastName: String = ""
-    @objc dynamic public var username: String = ""
-    @objc dynamic public var bonusPoints: String = ""
+class User: Object {
+    @objc dynamic var firstName: String = ""
+    @objc dynamic var lastName: String = ""
+    @objc dynamic var username: String = ""
+    @objc dynamic var bonusPoints: String = "" // to test migration change to "bonusPoints: Int32 = 0"
     let books = List<Book>()
 }
